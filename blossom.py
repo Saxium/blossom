@@ -6,12 +6,6 @@ import os.path
 import json
 import logging
 
-from openpyxl import Workbook, load_workbook
-from openpyxl.worksheet.worksheet import Worksheet
-from openpyxl.worksheet.table import Table, TableStyleInfo
-from openpyxl.styles import NamedStyle
-from openpyxl.utils import get_column_letter
-
 from typing import List, TextIO, Optional
 
 class Blossom:
@@ -21,9 +15,6 @@ class Blossom:
     def __init__(self, parser, logger = None) -> None:
         self.parser = parser
         self.logger = logger or logging.getLogger(__name__)
-        self._petals = None
-        self._bonus = None
-        self._words = None
 
     def _match(self, word: str, pistil, petals) -> bool:
         if word.find(pistil) >= 0:
@@ -33,60 +24,73 @@ class Blossom:
                 return True
         return False
 
-    def _filter_words(self, alpha, pistil, petals):
+    def _filter_words(self, words_name, min, pistil, petals):
         words = []
-        if not os.path.exists(alpha):
-            self.parser.error(f'No such file: {alpha}')
+        if not os.path.exists(words_name):
+            self.parser.error(f'No such file: {words_name}')
             return (False, None)
 
-        alpha_file = open(alpha, encoding="utf-8", newline='')    # pylint: disable=consider-using-with
-        if alpha_file is None:
-            self.parser.error(f'Failed to open file: {alpha}')
+        words_file = open(words_name, encoding="utf-8", newline='')    # pylint: disable=consider-using-with
+        if words_file is None:
+            self.parser.error(f'Failed to open file: {words_name}')
             return (False, None)
 
-        for line in alpha_file:
+        for line in words_file:
             word = line.strip()
-            if self._match(word, pistil, petals):
-                words.append(word)
+            if len(word) >= min:
+                if self._match(word, pistil, petals):
+                    words.append(word)
 
-        alpha_file.close()
+        words_file.close()
         return (True, words)
 
-    def _write_tmp(self, data):
-        tmp_file = open(Blossom.TMP_FILE, 'w')
-        if tmp_file is None:
-            self.parser.error(f'Failed to write tmp file: {Blossom.TMP_FILE}')
-            return False
+    def _length_bonus(self, word):
+        length = len(word)
+        if length < 4:
+            return 0
+        if length == 4:
+            return 2
+        if length == 5:
+            return 4
+        if length == 6:
+            return 6
+        return 12 + (length - 7) * 3
 
-        json_data = json.dumps(data)
-        tmp_file.write(json_data)
-        tmp_file.close()
-        return True
+    def _rank(self, words: list, bonus: str, score: int):
+        build = {}
+        for word in words:
+            bonus_chars = [item for item in list(word) if item == bonus]
+            other_chars = [item for item in list(word) if item != bonus]
+            all_bonus = 0
+            if len(set(word)) == 7:
+                all_bonus = 7
+            rank = self._length_bonus(word) + len(bonus_chars)*5 + all_bonus
+            if rank >= score:
+                build[word] = rank
+        return sorted((value,key) for (key,value) in build.items())
 
-    def prepare(self, flower: str, alpha: str = None) -> bool:
+    def doit(self, words_name: str, flower: str, bonus: str = None, min: int = 1, score: int = 1) -> bool:
         """Create temp file with flower only"""
         if len(set(flower)) != 7:
             self.parser.error(f'Seven unique chars required for flower')
             return False
 
-        if alpha is None:
-            alpha = "words_alpha.txt"
+        if len(bonus) != 1:
+            self.parser.error(f'Single char required for bonus')
+            return False
 
         petals = list(flower)
         pistil = petals.pop(0)
 
-        status, words = self._filter_words(alpha, pistil, petals)
+        status, word_list = self._filter_words(words_name, min, pistil, petals)
         if status is False:
             return False
 
-        data = {
-            'flower' : flower,
-            'pistil' : pistil,
-            'petals' : petals,
-            'words' : words
-        }
+        ranks = self._rank(word_list, bonus, score)
 
-        self.logger.info(data)
+        for x in ranks:
+            rank, word = x
+            print(f'{rank} : {word}')
 
         return True
 
@@ -94,13 +98,12 @@ class Blossom:
 def main() -> bool:
     """Main to handle program parameters"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--alpha', help="alpha words")
+    parser.add_argument('-w', '--words', default="words_alpha.txt", help="alpha words")
     parser.add_argument('-l', '--log', help="logging output", action='store_true')
-
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-f', '--flower', help="petals (pistil first)")
-    group.add_argument('-b', '--bonus', help="bonus letter")
-    group.add_argument('-s', '--show', help="show all words", action='store_true')
+    parser.add_argument('-f', '--flower', required=True, help="petals (pistil first)")
+    parser.add_argument('-b', '--bonus', required=True, help="bonus letter")
+    parser.add_argument('-m', '--min', type=int, default=1, help="minium word length")
+    parser.add_argument('-s', '--score', type=int, default=1, help="words above score")
 
     args = parser.parse_args()
 
@@ -121,11 +124,8 @@ def main() -> bool:
     blossom: Blossom = Blossom(parser, logger)
 
     if args.flower:
-        return blossom.prepare(args.flower, args.alpha)
-    if args.bonus:
-        return blossom.bonus()
-    if args.show:
-        return blossom.show()
+        return blossom.doit(args.words, args.flower, args.bonus, args.min, args.score)
+
     return False
 
 if __name__ == "__main__":

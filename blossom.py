@@ -7,10 +7,11 @@ import logging
 from logging import Logger
 from typing import Optional
 
+
 class Blossom:
     """Blossom Online Word Game"""
 
-    def __init__(self, parser: ArgumentParser,logger: Optional[Logger]) -> None:
+    def __init__(self, parser: ArgumentParser, logger: Optional[Logger]) -> None:
         self.parser = parser
         self.logger = logger or logging.getLogger(__name__)
         self._words = None
@@ -30,7 +31,8 @@ class Blossom:
             self.parser.error(f'No such file: {words_name}')
             return (False, None)
 
-        words_file = open(words_name, encoding="utf-8", newline='')    # pylint: disable=consider-using-with
+        # pylint: disable=consider-using-with
+        words_file = open(words_name, encoding="utf-8", newline='')
         if words_file is None:
             self.parser.error(f'Failed to open file: {words_name}')
             return (False, None)
@@ -79,10 +81,10 @@ class Blossom:
             all_bonus: int = 0
             if len(set(word)) == 7:
                 all_bonus = 7
-            score: int = self._length_bonus(word) + len(bonus_chars)*5 + all_bonus
+            score: int = self._length_bonus(word) + len(bonus_chars) * 5 + all_bonus
             if score >= min_score:
                 build[word] = score
-        self._ranks = sorted((value,key) for (key,value) in build.items())
+        self._ranks = sorted((value, key) for (key, value) in build.items())
 
     def show(self) -> None:
         """Show results"""
@@ -90,8 +92,6 @@ class Blossom:
         for _ in self._ranks:
             rank, word = _
             print(f'{rank} : {word}')
-
-
 
 
 def main() -> bool:
@@ -140,6 +140,7 @@ def main() -> bool:
         return True
 
     return False
+
 
 if __name__ == "__main__":
     if main():

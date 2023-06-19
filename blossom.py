@@ -1,50 +1,59 @@
 #!/usr/bin/python3
 
+import logging
+import os.path
 import sys
 from argparse import ArgumentParser
-import os.path
-import logging
 from logging import Logger
 from typing import Optional
+
+
+class BlossomException(Exception):
+    """Blossom Exception"""
 
 
 class Blossom:
     """Blossom Online Word Game"""
 
-    def __init__(self, parser: ArgumentParser, logger: Optional[Logger]) -> None:
-        self.parser = parser
+    def __init__(self, words_source: str, flower: str, min_length:int = 3, logger: Optional[Logger] = None) -> None:
+        self.flower = flower
         self.logger = logger or logging.getLogger(__name__)
-        self._words = None
-        self._ranks = None
+        self.words = None
 
-    def _match(self, word: str, pistil, petals) -> bool:
-        """Match words with the pistil and optional number of petals """
-        if word.find(pistil) >= 0:
-            if set(word) - set(petals) == set(pistil):
-                return True
-        return False
+        if len(set(flower)) != 7:
+            raise BlossomException('Seven unique chars required for flower')
 
-    def _filter_words(self, words_name, min_length, pistil, petals) -> tuple:
-        """Load words and filter"""
+        petals: list = list(flower)
+        pistil: str = petals.pop(0)
+
+        self.words = self._load_words(words_source, min_length, pistil, petals)
+
+        self.pistil = pistil
+        self.petals = petals
+
+    def _load_words(self, words_name, min_length, pistil, petals) -> list:
+        """Load words and filter pistil"""
         words: list = []
         if not os.path.exists(words_name):
-            self.parser.error(f'No such file: {words_name}')
-            return (False, None)
+            raise BlossomException(f'No such file: {words_name}')
 
         # pylint: disable=consider-using-with
         words_file = open(words_name, encoding="utf-8", newline='')
         if words_file is None:
-            self.parser.error(f'Failed to open file: {words_name}')
-            return (False, None)
+            raise BlossomException(f'Failed to open file: {words_name}')
 
         for line in words_file:
             word = line.strip()
             if len(word) >= min_length:
-                if self._match(word, pistil, petals):
-                    words.append(word)
-
+                if word.find(pistil) >= 0:
+                    if set(word) - set(petals) == set(pistil):
+                        words.append(word)
         words_file.close()
-        return (True, words)
+
+        if len(words) == 0:
+            raise BlossomException(f'No words mathcing pistil: {pistil}')
+
+        return words
 
     def _length_bonus(self, word) -> int:
         """Formula for word length bonus"""
@@ -59,21 +68,11 @@ class Blossom:
             return 6
         return 12 + (length - 7) * 3
 
-    def load(self, words_name: str, pistil: str, petals: str, min_length: int = 1) -> bool:
-        """Load words from file"""
-
-        status, word_list = self._filter_words(words_name, min_length, pistil, petals)
-        if status is False:
-            return False
-
-        self._words = word_list
-        return True
-
-    def rank(self, bonus: str, min_score: int = 1) -> None:
+    def rank(self, bonus: str, min_score: int = 1) -> list:
         """Calc word and total score"""
-        assert self._words, "Words list should exist"
+        assert self.words, "Words list should exist"
         build: dict = {}
-        for word in self._words:
+        for word in self.words:
             bonus_chars: list = [item for item in list(word) if item == bonus]
             all_bonus: int = 0
             if len(set(word)) == 7:
@@ -89,19 +88,18 @@ class Blossom:
         for bonus in petals:
             ranks = self.rank(bonus, min_score)
             ranks_count = len(ranks)
-            if ranks_count > 20:
-                ranks_count = 20
+            ranks_count = min(ranks_count, 20)
             build[bonus] = ranks[:ranks_count]
 
     def calc_top(self, petals: str, min_score: int = 1):
         """Calculate top score"""
-        pass
 
-    def simple_print(self, ranks) -> None:
+    def simple_print(self) -> bool:
         """Show results"""
-        assert ranks, "Ranks list should exist"
-        for word in self._words:
+        assert self.words, "Words list should exist"
+        for word in self.words:
             print(f'{word}')
+        return True
 
     def show(self, ranks) -> None:
         """Show results"""
@@ -145,10 +143,6 @@ def main() -> bool:
     handle.setFormatter(formatter)
     logger.addHandler(handle)
 
-    if len(set(args.flower)) != 7:
-        parser.error('Seven unique chars required for flower')
-        return False
-
     if args.bonus:
         if len(args.bonus) != 1:
             parser.error('Single char required for bonus')
@@ -158,20 +152,16 @@ def main() -> bool:
             parser.error(f'Bonus "{args.bonus}" must be in flower "{args.flower}"')
             return False
 
-    petals: list = list(args.flower)
-    pistil: str = petals.pop(0)
+    blossom: Blossom = Blossom(args.words, args.flower, args.min, logger)
 
-    blossom: Blossom = Blossom(parser, logger)
-
-    if blossom.load(args.words, pistil, petals, args.min):
-        if args.bonus:
-            ranks = blossom.rank(args.bonus, args.score)
-            blossom.show(ranks)
-            return True
-        if args.top:
-            return blossom.calc_top(petals, args.score)
-        if args.print:
-            return blossom.simple_print(petals)
+    if args.bonus:
+        ranks = blossom.rank(args.bonus, args.score)
+        blossom.show(ranks)
+        return True
+    if args.top:
+        return blossom.calc_top(args.score)
+    if args.print:
+        return blossom.simple_print()
 
     return False
 

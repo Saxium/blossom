@@ -15,23 +15,24 @@ class BlossomException(Exception):
 class Blossom:
     """Blossom Online Word Game"""
 
-    def __init__(self, words_source: str, flower: str, min_length:int = 3, logger: Optional[Logger] = None) -> None:
+    def __init__(self, words_source: str, flower: str,
+                 min_length: int = 3, logger: Optional[Logger] = None) -> None:
         self.flower = flower
         self.logger = logger or logging.getLogger(__name__)
-        self.words = None
+        self.words = []
+        self.ranks = {}
 
-        if len(set(flower)) != 7:
-            raise BlossomException('Seven unique chars required for flower')
+        assert len(set(flower)) == 7, 'Seven unique chars required for flower'
 
         petals: list = list(flower)
         pistil: str = petals.pop(0)
 
-        self.words = self._load_words(words_source, min_length, pistil, petals)
+        self.words = self.load_words(words_source, min_length, pistil, petals)
 
         self.pistil = pistil
         self.petals = petals
 
-    def _load_words(self, words_name, min_length, pistil, petals) -> list:
+    def load_words(self, words_name, min_length, pistil, petals) -> list:
         """Load words and filter pistil"""
         words: list = []
         if not os.path.exists(words_name):
@@ -55,7 +56,8 @@ class Blossom:
 
         return words
 
-    def _length_bonus(self, word) -> int:
+    @staticmethod
+    def length_bonus(word) -> int:
         """Formula for word length bonus"""
         length: int = len(word)
         if length < 4:
@@ -68,7 +70,7 @@ class Blossom:
             return 6
         return 12 + (length - 7) * 3
 
-    def rank(self, bonus: str, min_score: int = 1) -> list:
+    def make_scores(self, bonus: str, min_score: int = 1) -> dict:
         """Calc word and total score"""
         assert self.words, "Words list should exist"
         build: dict = {}
@@ -77,17 +79,31 @@ class Blossom:
             all_bonus: int = 0
             if len(set(word)) == 7:
                 all_bonus = 7
-            score: int = self._length_bonus(word) + len(bonus_chars) * 5 + all_bonus
+            score: int = self.length_bonus(word) + len(bonus_chars) * 5 + all_bonus
             if score >= min_score:
                 build[word] = score
-        return sorted((value, key) for (key, value) in build.items())
+        return build
+
+    @staticmethod
+    def rank_scores(scores, reverse=False):
+        """Rank dict to ordered list"""
+        return sorted(scores.items(), key=lambda x: x[1], reverse=reverse)
+
+    def word_rank(self, this_word):
+        """Return rank for word"""
+        for elem in self.words:
+            value, key = elem
+            if key == this_word:
+                return value
+        return None
 
     def _avg_top(self, petals: str, min_score: int = 1):
         """Top twenty averaged"""
         build = {}
         for bonus in petals:
-            ranks = self.rank(bonus, min_score)
-            ranks_count = len(ranks)
+            scores = self.make_scores(bonus, min_score)
+            ranks = self.rank_scores(scores)
+            ranks_count = len(scores)
             ranks_count = min(ranks_count, 20)
             build[bonus] = ranks[:ranks_count]
 
@@ -101,12 +117,14 @@ class Blossom:
             print(f'{word}')
         return True
 
-    def show(self, ranks) -> None:
+    def show_ranks(self, scores) -> None:
         """Show results"""
-        assert ranks, "Ranks list should exist"
-        for _ in ranks:
+        assert scores, "Scores list should exist"
+
+        for _ in self.rank_scores(scores):
             rank, word = _
             print(f'{rank} : {word}')
+
 
 def blossom_parser():
     """Blossom parser"""
@@ -123,6 +141,7 @@ def blossom_parser():
     group.add_argument('-p', '--print', action="store_true", default=False, help="just print")
 
     return parser
+
 
 def main() -> bool:
     """Main to handle program parameters"""
@@ -143,6 +162,10 @@ def main() -> bool:
     handle.setFormatter(formatter)
     logger.addHandler(handle)
 
+    if len(set(args.flower)) != 7:
+        parser.error('Seven unique chars required for flower')
+        return False
+
     if args.bonus:
         if len(args.bonus) != 1:
             parser.error('Single char required for bonus')
@@ -155,8 +178,8 @@ def main() -> bool:
     blossom: Blossom = Blossom(args.words, args.flower, args.min, logger)
 
     if args.bonus:
-        ranks = blossom.rank(args.bonus, args.score)
-        blossom.show(ranks)
+        scores = blossom.make_scores(args.bonus, args.score)
+        blossom.show_ranks(scores)
         return True
     if args.top:
         return blossom.calc_top(args.score)

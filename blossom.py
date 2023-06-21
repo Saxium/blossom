@@ -16,11 +16,11 @@ class Blossom:
     """Blossom Online Word Game"""
 
     def __init__(self, words_source: str, flower: str,
-                 min_length: int = 3, logger: Optional[Logger] = None) -> None:
+                 min_length: int, logger: Optional[Logger] = None) -> None:
         self.flower = flower
         self.logger = logger or logging.getLogger(__name__)
         self.words = []
-        self.ranks = {}
+        self.scores = {}
 
         assert len(set(flower)) == 7, 'Seven unique chars required for flower'
 
@@ -70,10 +70,10 @@ class Blossom:
             return 6
         return 12 + (length - 7) * 3
 
-    def make_scores(self, bonus: str, min_score: int = 1) -> dict:
+    def make_scores(self, bonus: str, min_score: int) -> bool:
         """Calc word and total score"""
         assert self.words, "Words list should exist"
-        build: dict = {}
+        count: int = 0
         for word in self.words:
             bonus_chars: list = [item for item in list(word) if item == bonus]
             all_bonus: int = 0
@@ -81,34 +81,44 @@ class Blossom:
                 all_bonus = 7
             score: int = self.length_bonus(word) + len(bonus_chars) * 5 + all_bonus
             if score >= min_score:
-                build[word] = score
-        return build
+                count += 1
+                if word in self.scores:
+                    self.scores[word]['bonuses'][bonus] = score
+                else:
+                    self.scores[word] = { 'bonuses' : { bonus: score } }
+        if count == 0:
+            return False
+        return True
 
     @staticmethod
-    def rank_scores(scores, reverse=False):
+    def rank_scores(scores: dict, reverse=False) -> list:
         """Rank dict to ordered list"""
         return sorted(scores.items(), key=lambda x: x[1], reverse=reverse)
 
-    def word_rank(self, this_word):
-        """Return rank for word"""
-        for elem in self.words:
-            value, key = elem
-            if key == this_word:
-                return value
-        return None
-
-    def _avg_top(self, petals: str, min_score: int = 1):
-        """Top twenty averaged"""
+    def collect_bonus(self, bonus: str) -> dict:
+        """Collect score:word list by bonus"""
+        assert self.scores, "Scores list should exist"
         build = {}
-        for bonus in petals:
-            scores = self.make_scores(bonus, min_score)
-            ranks = self.rank_scores(scores)
-            ranks_count = len(scores)
-            ranks_count = min(ranks_count, 20)
-            build[bonus] = ranks[:ranks_count]
+        for word, bonuses in self.scores.items():
+            if bonus in bonuses['bonuses']:
+                score = self.scores[word]['bonuses'][bonus]
+                build[word] = score
+        return build
 
-    def calc_top(self, petals: str, min_score: int = 1):
+    def _avg_top(self, min_score: int):
+        """Top twenty averaged"""
+        assert self.petals
+        build = {}
+        for bonus in self.petals:
+            assert self.make_scores(bonus, min_score) is True
+            # ranks = self.rank_scores(scores)
+            # ranks_count = min(len(scores), 5)
+            # build[bonus] = ranks[:ranks_count]
+
+    def calc_top(self, min_score: int):
         """Calculate top score"""
+        self._avg_top(min_score)
+        print(self.scores)
 
     def simple_print(self) -> bool:
         """Show results"""
@@ -117,10 +127,9 @@ class Blossom:
             print(f'{word}')
         return True
 
-    def show_ranks(self, scores) -> None:
-        """Show results"""
-        assert scores, "Scores list should exist"
-
+    def show_scores(self, bonus: str) -> None:
+        """Show scores for a bonus"""
+        scores = self.collect_bonus(bonus)
         for _ in self.rank_scores(scores):
             rank, word = _
             print(f'{rank} : {word}')
@@ -132,8 +141,8 @@ def blossom_parser():
     parser.add_argument('-w', '--words', default="words.txt", help="alpha words")
     parser.add_argument('-l', '--log', help="logging output", action='store_true')
     parser.add_argument('-f', '--flower', required=True, help="petals (pistil first)")
-    parser.add_argument('-m', '--min', type=int, default=1, help="minium word length")
-    parser.add_argument('-s', '--score', type=int, default=1, help="words above score")
+    parser.add_argument('-m', '--min', type=int, default=6, help="minium word length")
+    parser.add_argument('-s', '--score', type=int, default=20, help="words above score")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-b', '--bonus', help="bonus letter")
@@ -178,8 +187,8 @@ def main() -> bool:
     blossom: Blossom = Blossom(args.words, args.flower, args.min, logger)
 
     if args.bonus:
-        scores = blossom.make_scores(args.bonus, args.score)
-        blossom.show_ranks(scores)
+        assert blossom.make_scores(args.bonus, args.score) is True
+        blossom.show_scores(args.bonus)
         return True
     if args.top:
         return blossom.calc_top(args.score)

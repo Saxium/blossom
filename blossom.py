@@ -65,7 +65,7 @@ class Blossom:
         if len(word) > 7:
             length_bonus = 12 + (len(word) - 7) * 3
         else:
-            length_bonus = [0, 0, 0, 0, 2, 5, 6, 12][len(word)]
+            length_bonus = [0, 0, 0, 0, 2, 4, 6, 12][len(word)]
         score: int = length_bonus + len(bonus_chars) * 5 + all_bonus
         return score
 
@@ -140,7 +140,7 @@ class Blossom:
         ranks = self.collect_bonus(self.scores, bonus)
         for _ in self.order_ranks(ranks):
             word, rank = _
-            print(f'{rank} : {word}')
+            print(f'{word} = {rank}')
 
 
 def blossom_parser() -> ArgumentParser:

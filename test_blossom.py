@@ -4,27 +4,36 @@ import pytest
 from blossom import Blossom
 
 
-@pytest.fixture(name="my_blossom")
-def fixture_blossom():
+@pytest.fixture(name="alpha_blossom")
+def fixture_blossom() -> Blossom:
     '''Returns a Blossom instance with parse and logger'''
     return Blossom(words_source="words_alpha.txt", flower="slurepg", min_length=6)
 
 
-def test_alpha_first_word(my_blossom):
+def test_blossom_first_word(alpha_blossom: Blossom) -> None:
     """First word"""
-    assert my_blossom.words[0] == "eggers"
+    assert alpha_blossom.words[0] == "eggers"
 
 
-def test_alpha_find_word(my_blossom):
+def test_blossom_find_word(alpha_blossom: Blossom) -> None:
     """Find word"""
-    assert my_blossom.words.index("peerless") == 40
-    assert my_blossom.words[40] == "peerless"
+    assert alpha_blossom.words.index("peerless") == 40
+    assert alpha_blossom.words[40] == "peerless"
 
 
-def test_alpha_length_bonuses(my_blossom):
+def test_blossom_word_bonuses() -> None:
     """Length bonuses"""
-    assert my_blossom.length_bonus("abc") == 0
-    assert my_blossom.length_bonus("abcde") == 4
-    assert my_blossom.length_bonus("abcdef") == 6
-    assert my_blossom.length_bonus("abcdefg") == 12
-    assert my_blossom.length_bonus("abcdefghi") == 18
+    assert Blossom.word_bonus("g", "abc") == 0
+    assert Blossom.word_bonus("b", "abc") == 5
+    assert Blossom.word_bonus("g", "abcd") == 2
+    assert Blossom.word_bonus("b", "abcd") == 2 + 5
+    assert Blossom.word_bonus("g", "abcde") == 4
+    assert Blossom.word_bonus("b", "abcde") == 4 + 5
+    assert Blossom.word_bonus("b", "abcdb") == 4 + 5 * 2
+    assert Blossom.word_bonus("g", "abcdef") == 6
+    assert Blossom.word_bonus("b", "abcdef") == 6 + 5
+    assert Blossom.word_bonus("g", "abcdefg") == 12 + 5 + 7
+    assert Blossom.word_bonus("b", "abcdefg") == 12 + 5 + 7
+    assert Blossom.word_bonus("g", "abcdefga") == 15 + 5 + 7
+    assert Blossom.word_bonus("b", "abcdefga") == 15 + 5 + 7
+    assert Blossom.word_bonus("b", "abcdefgab") == 18 + 5 * 2 + 7

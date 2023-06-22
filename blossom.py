@@ -31,16 +31,16 @@ class Blossom:
 
         self.words = self.load_words(words_source, min_length)
 
-    def load_words(self, words_name: str, min_length: int) -> list[str]:
+    def load_words(self, words_source: str, min_length: int) -> list[str]:
         """Load words and filter pistil"""
         words: list[str] = []
-        if not os.path.exists(words_name):
-            raise BlossomException(f'No such file: {words_name}')
+        if not os.path.exists(words_source):
+            raise BlossomException(f'No such file: {words_source}')
 
         # pylint: disable=consider-using-with
-        words_file = open(words_name, encoding="utf-8", newline='')
+        words_file = open(words_source, encoding="utf-8", newline='')
         if words_file is None:
-            raise BlossomException(f'Failed to open file: {words_name}')
+            raise BlossomException(f'Failed to open file: {words_source}')
 
         for line in words_file:
             word = line.strip()
@@ -56,29 +56,25 @@ class Blossom:
         return words
 
     @staticmethod
-    def length_bonus(word: str) -> int:
-        """Formula for word length bonus"""
-        length: int = len(word)
-        if length < 4:
-            return 0
-        if length == 4:
-            return 2
-        if length == 5:
-            return 4
-        if length == 6:
-            return 6
-        return 12 + (length - 7) * 3
+    def word_bonus(bonus: str, word: str) -> int:
+        """Formula for word bonus"""
+        bonus_chars: list[str] = [item for item in list(word) if item == bonus]
+        all_bonus: int = 0
+        if len(set(word)) == 7:
+            all_bonus = 7
+        if len(word) > 7:
+            length_bonus = 12 + (len(word) - 7) * 3
+        else:
+            length_bonus = [0, 0, 0, 0, 2, 5, 6, 12][len(word)]
+        score: int = length_bonus + len(bonus_chars) * 5 + all_bonus
+        return score
 
     def make_scores(self, bonus: str, min_score: int) -> bool:
         """Calc word and total score"""
         assert self.words, "Words list should exist"
         count: int = 0
         for word in self.words:
-            bonus_chars: list[str] = [item for item in list(word) if item == bonus]
-            all_bonus: int = 0
-            if len(set(word)) == 7:
-                all_bonus = 7
-            score: int = self.length_bonus(word) + len(bonus_chars) * 5 + all_bonus
+            score = self.word_bonus(bonus, word)
             if score >= min_score:
                 count += 1
                 if word in self.scores:

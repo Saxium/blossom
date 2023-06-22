@@ -83,9 +83,9 @@ class Blossom:
             if score >= min_score:
                 count += 1
                 if word in self.scores:
-                    self.scores[word]['bonuses'][bonus] = score
+                    self.scores[word][bonus] = score
                 else:
-                    self.scores[word] = {'bonuses': {bonus: score}}
+                    self.scores[word] = {bonus: score}
         if count == 0:
             return False
         return True
@@ -100,8 +100,8 @@ class Blossom:
         assert scores, "Scores list should exist"
         build = {}
         for word, bonuses in scores.items():
-            if bonus in bonuses['bonuses']:
-                score = scores[word]['bonuses'][bonus]
+            if bonus in bonuses:
+                score = scores[word][bonus]
                 build[word] = score
         return build
 

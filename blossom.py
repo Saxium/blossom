@@ -22,7 +22,7 @@ class Blossom:
         self.flower: str = flower
         self.logger: Logger = logger or logging.getLogger(__name__)
         self.words: list[str] = []
-        self.scores = {}
+        self.scores: dict[str, dict[str, int]] = {}
 
         assert len(set(flower)) == 7, 'Seven unique chars required for flower'
 
@@ -30,7 +30,6 @@ class Blossom:
         self.pistil: str = self.petals.pop(0)
 
         self.words = self.load_words(words_source, min_length)
-
 
     def load_words(self, words_name: str, min_length: int) -> list[str]:
         """Load words and filter pistil"""
@@ -91,14 +90,16 @@ class Blossom:
         return True
 
     @staticmethod
-    def order_ranks(scores: dict, reverse=False) -> list[tuple[str,int]]:
+    def order_ranks(ranks: dict[str, int],
+                    reverse: bool = False) -> list[tuple[str, int]]:
         """Rank dict to ordered list"""
-        return sorted(scores.items(), key=lambda x: x[1], reverse=reverse)
+        return sorted(ranks.items(), key=lambda x: x[1], reverse=reverse)
 
-    def collect_bonus(self, scores: dict, bonus: str) -> dict:
+    def collect_bonus(self, scores: dict[str, dict[str, int]],
+                      bonus: str) -> dict[str, int]:
         """Collect score:word list by bonus"""
         assert scores, "Scores list should exist"
-        build = {}
+        build: dict[str, int] = {}
         for word, bonuses in scores.items():
             if bonus in bonuses:
                 score = scores[word][bonus]
@@ -114,7 +115,7 @@ class Blossom:
         variations: set[str] = set([''.join(p) for p in permutations(self.petals)])
         best: tuple[int, str, list[tuple[str, str, int]]] = (0, "", [])
         for petals in list(variations):
-            scores: dict = deepcopy(self.scores)
+            scores: dict[str, dict[str, int]] = deepcopy(self.scores)
             total: int = 0
             data: list[tuple[str, str, int]] = []
             for _ in [1, 2]:
@@ -145,7 +146,8 @@ class Blossom:
             word, rank = _
             print(f'{rank} : {word}')
 
-def blossom_parser():
+
+def blossom_parser() -> ArgumentParser:
     """Blossom parser"""
     parser = ArgumentParser()
     parser.add_argument('-w', '--words', default="words.txt", help="alpha words")

@@ -7,18 +7,18 @@ from blossom import Blossom
 @pytest.fixture(name="my_blossom")
 def fixture_blossom():
     '''Returns a Blossom instance with parse and logger'''
-    return Blossom("words_alpha.txt", "slurepg")
+    return Blossom(words_source="words_alpha.txt", flower="slurepg", min_length=6)
 
 
 def test_alpha_first_word(my_blossom):
     """First word"""
-    assert my_blossom.words[0] == "eels"
+    assert my_blossom.words[0] == "eggers"
 
 
 def test_alpha_find_word(my_blossom):
     """Find word"""
-    assert my_blossom.words.index("peerless") == 111
-    assert my_blossom.words[111] == "peerless"
+    assert my_blossom.words.index("peerless") == 40
+    assert my_blossom.words[40] == "peerless"
 
 
 def test_alpha_length_bonuses(my_blossom):

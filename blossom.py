@@ -44,14 +44,15 @@ class Blossom:
 
         for line in words_file:
             word = line.strip()
-            if len(word) >= min_length:
-                if word.find(self.pistil) >= 0:
-                    if set(word) - set(self.petals) == set(self.pistil):
-                        words.append(word)
+            if word.isalpha():
+                if len(word) >= min_length:
+                    if word.find(self.pistil) >= 0:
+                        if set(word) - set(self.petals) == set(self.pistil):
+                            words.append(word)
         words_file.close()
 
         if len(words) == 0:
-            raise BlossomException(f'No words mathcing pistil: {self.pistil}')
+            raise BlossomException(f'No words matching pistil: {self.pistil}')
 
         return words
 
@@ -150,7 +151,7 @@ def blossom_parser() -> ArgumentParser:
     parser.add_argument('-l', '--log', help="logging output", action='store_true')
     parser.add_argument('-f', '--flower', required=True, help="petals (pistil first)")
     parser.add_argument('-m', '--min', type=int, default=6, help="minium word length")
-    parser.add_argument('-s', '--score', type=int, default=20, help="words above score")
+    parser.add_argument('-s', '--score', type=int, default=15, help="words above score")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-b', '--bonus', help="bonus letter")

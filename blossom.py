@@ -107,7 +107,8 @@ class Blossom:
         """Top score possible"""
         assert self.petals
         for bonus in self.petals:
-            assert self.make_scores(bonus, min_score) is True, f"No scores collected with min {min_score} bonus {bonus}"
+            assert self.make_scores(bonus, min_score) is True, \
+                f"No scores collected with min {min_score} bonus {bonus}"
 
         variations: set[str] = set([''.join(p) for p in permutations(self.petals)])
         best: tuple[int, str, list[tuple[str, str, int]]] = (0, "", [])
@@ -196,7 +197,8 @@ def main() -> bool:
     blossom: Blossom = Blossom(args.words, args.flower, args.min, logger)
 
     if args.bonus:
-        assert blossom.make_scores(args.bonus, args.score) is True, f"No scores collected with min {args.score} bonus {args.bonus}"
+        assert blossom.make_scores(args.bonus, args.score) is True, \
+            f"No scores collected with min {args.score} bonus {args.bonus}"
 
         print(blossom.scores)
         blossom.show_scores(args.bonus)

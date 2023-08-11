@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+"""Blossom."""
 import logging
 import os.path
 import sys
@@ -11,14 +11,15 @@ from copy import deepcopy
 
 
 class BlossomException(Exception):
-    """Blossom Exception"""
+    """Blossom Exception."""
 
 
 class Blossom:
-    """Blossom Online Word Game"""
+    """Blossom Online Word Game."""
 
     def __init__(self, words_source: str, flower: str,
                  min_length: int, logger: Optional[Logger] = None) -> None:
+        """Initialise blossom."""
         self.flower: str = flower
         self.logger: Logger = logger or logging.getLogger(__name__)
         self.words: list[str] = []
@@ -32,7 +33,7 @@ class Blossom:
         self.words = self.load_words(words_source, min_length)
 
     def load_words(self, words_source: str, min_length: int) -> list[str]:
-        """Load words and filter pistil"""
+        """Load words and filter pistil."""
         words: list[str] = []
         if not os.path.exists(words_source):
             raise BlossomException(f'No such file: {words_source}')
@@ -58,7 +59,7 @@ class Blossom:
 
     @staticmethod
     def word_bonus(bonus: str, word: str) -> int:
-        """Formula for word bonus"""
+        """Calculate for word bonus."""
         bonus_chars: list[str] = [item for item in list(word) if item == bonus]
         all_bonus: int = 0
         if len(set(word)) == 7:
@@ -71,7 +72,7 @@ class Blossom:
         return score
 
     def make_scores(self, bonus: str, min_score: int) -> bool:
-        """Calc word and total score"""
+        """Calc word and total score."""
         assert self.words, "Words list should exist"
         count: int = 0
         for word in self.words:
@@ -89,12 +90,12 @@ class Blossom:
     @staticmethod
     def order_ranks(ranks: dict[str, int],
                     reverse: bool = False) -> list[tuple[str, int]]:
-        """Rank dict to ordered list"""
+        """Rank dict to ordered list."""
         return sorted(ranks.items(), key=lambda x: x[1], reverse=reverse)
 
     def collect_bonus(self, scores: dict[str, dict[str, int]],
                       bonus: str) -> dict[str, int]:
-        """Collect score:word list by bonus"""
+        """Collect score:word list by bonus."""
         assert scores, "Scores list should exist"
         build: dict[str, int] = {}
         for word, bonuses in scores.items():
@@ -104,13 +105,14 @@ class Blossom:
         return build
 
     def top_score(self, min_score: int) -> None:
-        """Top score possible"""
+        """Top score possible."""
         assert self.petals
         for bonus in self.petals:
             assert self.make_scores(bonus, min_score) is True, \
                 f"No scores collected with min {min_score} bonus {bonus}"
 
-        variations: set[str] = set([''.join(p) for p in permutations(self.petals)])
+        variations: set[str] = set([''.join(p)
+                                   for p in permutations(self.petals)])
         best: tuple[int, str, list[tuple[str, str, int]]] = (0, "", [])
         for petals in list(variations):
             scores: dict[str, dict[str, int]] = deepcopy(self.scores)
@@ -132,13 +134,13 @@ class Blossom:
         print(f'Total = {best[0]}')
 
     def simple_print(self) -> None:
-        """Show results"""
+        """Show results."""
         assert self.words, "Words list should exist"
         for word in self.words:
             print(f'{word}')
 
     def show_scores(self, bonus: str) -> None:
-        """Show scores for a bonus"""
+        """Show scores for a bonus."""
         ranks = self.collect_bonus(self.scores, bonus)
         for _ in self.order_ranks(ranks):
             word, rank = _
@@ -146,24 +148,31 @@ class Blossom:
 
 
 def blossom_parser() -> ArgumentParser:
-    """Blossom parser"""
+    """Blossom parser."""
     parser = ArgumentParser()
-    parser.add_argument('-w', '--words', default="words.txt", help="alpha words")
-    parser.add_argument('-l', '--log', help="logging output", action='store_true')
-    parser.add_argument('-f', '--flower', required=True, help="petals (pistil first)")
-    parser.add_argument('-m', '--min', type=int, default=6, help="minium word length")
-    parser.add_argument('-s', '--score', type=int, default=15, help="words above score")
+    parser.add_argument(
+        '-w', '--words', default="words.txt", help="alpha words")
+    parser.add_argument(
+        '-l', '--log', help="logging output", action='store_true')
+    parser.add_argument('-f', '--flower', required=True,
+                        help="petals (pistil first)")
+    parser.add_argument('-m', '--min', type=int, default=6,
+                        help="minium word length")
+    parser.add_argument('-s', '--score', type=int,
+                        default=15, help="words above score")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-b', '--bonus', help="bonus letter")
-    group.add_argument('-t', '--top', action="store_true", default=False, help="highest solution")
-    group.add_argument('-p', '--print', action="store_true", default=False, help="just print")
+    group.add_argument('-t', '--top', action="store_true",
+                       default=False, help="highest solution")
+    group.add_argument('-p', '--print', action="store_true",
+                       default=False, help="just print")
 
     return parser
 
 
 def main() -> bool:
-    """Main to handle program parameters"""
+    """Handle program parameters."""
     parser = blossom_parser()
     args = parser.parse_args()
 
@@ -177,7 +186,8 @@ def main() -> bool:
         logger.setLevel(logging.INFO)
         handle.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handle.setFormatter(formatter)
     logger.addHandler(handle)
 
@@ -191,7 +201,8 @@ def main() -> bool:
             return False
 
         if len(set(args.flower + args.bonus)) != 7:
-            parser.error(f'Bonus "{args.bonus}" must be in flower "{args.flower}"')
+            parser.error(
+                f'Bonus "{args.bonus}" must be in flower "{args.flower}"')
             return False
 
     blossom: Blossom = Blossom(args.words, args.flower, args.min, logger)

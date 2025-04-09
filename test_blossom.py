@@ -28,7 +28,7 @@ def test_blossom_word_bonuses() -> None:
     assert Blossom.word_bonus("g", "abcd") == 2
     assert Blossom.word_bonus("b", "abcd") == 2 + 5
     assert Blossom.word_bonus("g", "abcde") == 4
-    assert Blossom.word_bonus("b", "abcde") == 4 + 5
+    assert Blossom.word_bonus("b", "abcde") == 9
     assert Blossom.word_bonus("b", "abcdb") == 4 + 5 * 2
     assert Blossom.word_bonus("g", "abcdef") == 6
     assert Blossom.word_bonus("b", "abcdef") == 6 + 5

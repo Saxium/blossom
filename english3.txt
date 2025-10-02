@@ -28,8 +28,6 @@ abaddon
 abaft
 abalone
 abalones
-abampere
-abamperes
 aband
 abandon
 abandoned

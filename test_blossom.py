@@ -37,3 +37,45 @@ def test_blossom_word_bonuses() -> None:
     assert Blossom.word_bonus("g", "abcdefga") == 15 + 5 + 7
     assert Blossom.word_bonus("b", "abcdefga") == 15 + 5 + 7
     assert Blossom.word_bonus("b", "abcdefgab") == 18 + 5 * 2 + 7
+
+
+def test_load_words_missing_file_raises() -> None:
+    """Missing word source file raises BlossomException."""
+    with pytest.raises(Exception, match="No such file"):
+        Blossom(words_source="missing.txt", flower="slurepg", min_length=6)
+
+
+def test_make_scores_and_show_scores(tmp_path) -> None:
+    """make_scores populates scores and show_scores returns ordered values."""
+    words_file = tmp_path / "words.txt"
+    words_file.write_text("ab\nabc\nabcd\n", encoding="utf-8")
+    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    assert blossom.make_scores("b", 0)
+    scores = blossom.show_scores("b", print_output=False)
+    assert scores[0][0] == "ab"
+    assert scores == sorted(scores, key=lambda item: item[1])
+
+
+def test_order_ranks_and_collect_bonus() -> None:
+    """order_ranks sorts and collect_bonus filters correctly."""
+    ranks = {"one": 1, "two": 2, "three": 3}
+    assert Blossom.order_ranks(ranks) == [("one", 1), ("two", 2), ("three", 3)]
+    assert Blossom.order_ranks(ranks, reverse=True) == [("three", 3), ("two", 2), ("one", 1)]
+
+    blossom = Blossom(words_source="words_alpha.txt", flower="slurepg", min_length=6)
+    scores = {"apple": {"p": 10}, "pear": {"p": 8}}
+    assert blossom.collect_bonus(scores, "p") == {"apple": 10, "pear": 8}
+
+
+def test_top_score_and_simple_print(tmp_path) -> None:
+    """top_score returns a structured result and simple_print returns words."""
+    words_file = tmp_path / "words.txt"
+    words_file.write_text(
+        "ab\nabc\nabd\nabe\nabf\nabg\nac\nacd\nace\nacf\nacg\nad\n", encoding="utf-8"
+    )
+    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    result = blossom.top_score(min_score=0, print_output=False)
+    assert result["total"] >= 0
+    assert result["petals"]
+    assert len(result["rows"]) == 12
+    assert blossom.simple_print() == list(blossom.words)

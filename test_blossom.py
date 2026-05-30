@@ -6,7 +6,7 @@ from blossom import Blossom
 
 @pytest.fixture(name="alpha_blossom")  # type: ignore[untyped-decorator]
 def fixture_blossom() -> Blossom:
-    '''Returns a Blossom instance with parse and logger'''
+    """Returns a Blossom instance with parse and logger"""
     return Blossom(words_source="words_alpha.txt", flower="slurepg", min_length=6)
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Blossom."""
+
 import json
 import logging
 import os.path
@@ -18,8 +19,13 @@ class BlossomException(Exception):
 class Blossom:
     """Blossom Online Word Game."""
 
-    def __init__(self, words_source: str, flower: str,
-                 min_length: int, logger: Optional[Logger] = None) -> None:
+    def __init__(
+        self,
+        words_source: str,
+        flower: str,
+        min_length: int,
+        logger: Optional[Logger] = None,
+    ) -> None:
         """Initialise blossom."""
         self.flower: str = flower
         self.logger: Logger = logger or logging.getLogger(__name__)
@@ -27,7 +33,7 @@ class Blossom:
         self.scores: dict[str, dict[str, int]] = {}
 
         if len(set(flower)) != 7:
-            raise BlossomException('Seven unique chars required for flower')
+            raise BlossomException("Seven unique chars required for flower")
 
         self.petals: list[str] = list(flower)
         self.pistil: str = self.petals.pop(0)
@@ -39,10 +45,10 @@ class Blossom:
         """Load words and filter pistil."""
         words: list[str] = []
         if not os.path.exists(words_source):
-            raise BlossomException(f'No such file: {words_source}')
+            raise BlossomException(f"No such file: {words_source}")
 
         pistil_set: set[str] = {self.pistil}
-        with open(words_source, encoding="utf-8", newline='') as words_file:
+        with open(words_source, encoding="utf-8", newline="") as words_file:
             for line in words_file:
                 word = line.strip()
                 if not word.isalpha():
@@ -55,7 +61,7 @@ class Blossom:
                     words.append(word)
 
         if not words:
-            raise BlossomException(f'No words matching pistil: {self.pistil}')
+            raise BlossomException(f"No words matching pistil: {self.pistil}")
 
         return words
 
@@ -91,13 +97,15 @@ class Blossom:
         return True
 
     @staticmethod
-    def order_ranks(ranks: dict[str, int],
-                    reverse: bool = False) -> list[tuple[str, int]]:
+    def order_ranks(
+        ranks: dict[str, int], reverse: bool = False
+    ) -> list[tuple[str, int]]:
         """Rank dict to ordered list."""
         return sorted(ranks.items(), key=lambda x: x[1], reverse=reverse)
 
-    def collect_bonus(self, scores: dict[str, dict[str, int]],
-                      bonus: str) -> dict[str, int]:
+    def collect_bonus(
+        self, scores: dict[str, dict[str, int]], bonus: str
+    ) -> dict[str, int]:
         """Collect score:word list by bonus."""
         if not scores:
             raise BlossomException("Scores list should exist")
@@ -123,17 +131,17 @@ class Blossom:
                 data.append((bonus, word, rank))
         return total, data
 
-    def top_score(self, min_score: int,
-                  print_output: bool = True) -> dict[str, object]:
+    def top_score(self, min_score: int, print_output: bool = True) -> dict[str, object]:
         """Top score possible."""
         if not self.petals:
             raise BlossomException("Petals list should exist")
         for bonus in self.petals:
             if not self.make_scores(bonus, min_score):
                 raise BlossomException(
-                    f"No scores collected with min {min_score} bonus {bonus}")
+                    f"No scores collected with min {min_score} bonus {bonus}"
+                )
 
-        variations = {''.join(p) for p in permutations(self.petals)}
+        variations = {"".join(p) for p in permutations(self.petals)}
         best: tuple[int, str, list[tuple[str, str, int]]] = (0, "", [])
         for petals in variations:
             total, data = self._rank_variation(petals)
@@ -150,8 +158,8 @@ class Blossom:
         if print_output:
             for row in best[2]:
                 bonus, word, rank = row
-                print(f'{bonus} : {word} = {rank}')
-            print(f'Total = {best[0]}')
+                print(f"{bonus} : {word} = {rank}")
+            print(f"Total = {best[0]}")
         return result
 
     def simple_print(self) -> list[str]:
@@ -160,8 +168,9 @@ class Blossom:
             raise BlossomException("Words list should exist")
         return list(self.words)
 
-    def show_scores(self, bonus: str,
-                    print_output: bool = True) -> list[tuple[str, int]]:
+    def show_scores(
+        self, bonus: str, print_output: bool = True
+    ) -> list[tuple[str, int]]:
         """Show scores for a bonus."""
         if not self.scores:
             raise BlossomException("Scores list should exist")
@@ -170,32 +179,28 @@ class Blossom:
         if print_output:
             for _ in ordered:
                 word, rank = _
-                print(f'{word} = {rank}')
+                print(f"{word} = {rank}")
         return ordered
 
 
 def blossom_parser() -> ArgumentParser:
     """Blossom parser."""
     parser = ArgumentParser()
-    parser.add_argument(
-        '-w', '--words', default="words.txt", help="alpha words")
-    parser.add_argument(
-        '-l', '--log', help="logging output", action='store_true')
-    parser.add_argument('-f', '--flower', required=True,
-                        help="petals (pistil first)")
-    parser.add_argument('-m', '--min', type=int, default=6,
-                        help="minium word length")
-    parser.add_argument('-s', '--score', type=int,
-                        default=15, help="words above score")
-    parser.add_argument('--json', action='store_true',
-                        help="json output")
+    parser.add_argument("-w", "--words", default="words.txt", help="alpha words")
+    parser.add_argument("-l", "--log", help="logging output", action="store_true")
+    parser.add_argument("-f", "--flower", required=True, help="petals (pistil first)")
+    parser.add_argument("-m", "--min", type=int, default=6, help="minium word length")
+    parser.add_argument("-s", "--score", type=int, default=15, help="words above score")
+    parser.add_argument("--json", action="store_true", help="json output")
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-b', '--bonus', help="bonus letter")
-    group.add_argument('-t', '--top', action="store_true",
-                       default=False, help="highest solution")
-    group.add_argument('-p', '--print', action="store_true",
-                       default=False, help="just print")
+    group.add_argument("-b", "--bonus", help="bonus letter")
+    group.add_argument(
+        "-t", "--top", action="store_true", default=False, help="highest solution"
+    )
+    group.add_argument(
+        "-p", "--print", action="store_true", default=False, help="just print"
+    )
 
     return parser
 
@@ -207,15 +212,15 @@ def _output_json(payload: dict[str, object]) -> None:
 def _handle_bonus(blossom: Blossom, args: Namespace, logger: logging.Logger) -> bool:
     if not blossom.make_scores(args.bonus, args.score):
         raise BlossomException(
-            f"No scores collected with min {args.score} bonus {args.bonus}")
+            f"No scores collected with min {args.score} bonus {args.bonus}"
+        )
 
     logger.debug("Scores: %s", blossom.scores)
     scores = blossom.show_scores(args.bonus, print_output=not args.json)
     if args.json:
         payload = {
             "bonus": args.bonus,
-            "scores": [{"word": word, "score": score}
-                       for word, score in scores],
+            "scores": [{"word": word, "score": score} for word, score in scores],
         }
         _output_json(payload)
     return True
@@ -254,20 +259,20 @@ def main() -> bool:
         handle.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handle.setFormatter(formatter)
     logger.addHandler(handle)
 
     if len(set(args.flower)) != 7:
-        parser.error('Seven unique chars required for flower')
+        parser.error("Seven unique chars required for flower")
 
     if args.bonus:
         if len(args.bonus) != 1:
-            parser.error('Single char required for bonus')
+            parser.error("Single char required for bonus")
 
         if len(set(args.flower + args.bonus)) != 7:
-            parser.error(
-                f'Bonus "{args.bonus}" must be in flower "{args.flower}"')
+            parser.error(f'Bonus "{args.bonus}" must be in flower "{args.flower}"')
 
     result = False
     try:

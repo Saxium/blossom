@@ -54,7 +54,7 @@ class Blossom:
                 if set(word) - self.petals_set == pistil_set:
                     words.append(word)
 
-        if len(words) == 0:
+        if not words:
             raise BlossomException(f'No words matching pistil: {self.pistil}')
 
         return words
@@ -86,7 +86,7 @@ class Blossom:
                     self.scores[word][bonus] = score
                 else:
                     self.scores[word] = {bonus: score}
-        if count == 0:
+        if not count:
             return False
         return True
 

@@ -4,7 +4,7 @@ import pytest
 from blossom import Blossom
 
 
-@pytest.fixture(name="alpha_blossom")
+@pytest.fixture(name="alpha_blossom")  # type: ignore[untyped-decorator]
 def fixture_blossom() -> Blossom:
     '''Returns a Blossom instance with parse and logger'''
     return Blossom(words_source="words_alpha.txt", flower="slurepg", min_length=6)
@@ -23,7 +23,7 @@ def test_blossom_find_word(alpha_blossom: Blossom) -> None:
 
 def test_blossom_word_bonuses() -> None:
     """Length bonuses"""
-    assert Blossom.word_bonus("g", "abc") == 0
+    assert not Blossom.word_bonus("g", "abc")
     assert Blossom.word_bonus("b", "abc") == 5
     assert Blossom.word_bonus("g", "abcd") == 2
     assert Blossom.word_bonus("b", "abcd") == 2 + 5

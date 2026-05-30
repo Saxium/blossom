@@ -82,11 +82,16 @@ def pytest(session: nox.Session) -> None:
 def pylint(session: nox.Session) -> None:
     """Run static analysis with pylint."""
     session.install("pylint", "pytest")
-    session.run("pylint", "blossom.py", "test_blossom.py")
+    session.run(
+        "pylint",
+        "--enable=all",
+        "blossom.py",
+        "test_blossom.py",
+    )
 
 
 @nox.session(python=PYTHON_VERSIONS)
 def mypy(session: nox.Session) -> None:
     """Run type checking with mypy."""
     session.install("mypy")
-    session.run("mypy", "--strict", "blossom.py")
+    session.run("mypy", "--strict", "blossom.py", "test_blossom.py")

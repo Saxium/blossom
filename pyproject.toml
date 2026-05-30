@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blossom"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+dependencies = []
+
+[tool.pytest.ini_options]
+addopts = "-q"
+python_files = ["test_*.py"]
+
+testpaths = ["."]
+
+[tool.black]
+line-length = 88
+
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 88
+
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pylint",
+    "mypy",
+    "nox",
+    "black",
+]
+
+[tool.setuptools]
+py-modules = ["blossom"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+warn_redundant_casts = true
+strict_optional = true
+check_untyped_defs = true
+ignore_missing_imports = true

@@ -1,4 +1,4 @@
-# test_blossom.py
+"""Tests for blossom."""
 
 import pytest
 from blossom import Blossom

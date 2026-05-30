@@ -4,7 +4,7 @@ import json
 import logging
 import os.path
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from logging import Logger
 from typing import Optional
 from itertools import permutations
@@ -204,7 +204,7 @@ def _output_json(payload: dict[str, object]) -> None:
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
-def _handle_bonus(blossom: Blossom, args, logger: logging.Logger) -> bool:
+def _handle_bonus(blossom: Blossom, args: Namespace, logger: logging.Logger) -> bool:
     if not blossom.make_scores(args.bonus, args.score):
         raise BlossomException(
             f"No scores collected with min {args.score} bonus {args.bonus}")
@@ -221,14 +221,14 @@ def _handle_bonus(blossom: Blossom, args, logger: logging.Logger) -> bool:
     return True
 
 
-def _handle_top(blossom: Blossom, args) -> bool:
+def _handle_top(blossom: Blossom, args: Namespace) -> bool:
     result = blossom.top_score(args.score, print_output=not args.json)
     if args.json:
         _output_json(result)
     return True
 
 
-def _handle_print(blossom: Blossom, args) -> bool:
+def _handle_print(blossom: Blossom, args: Namespace) -> bool:
     words = blossom.simple_print()
     if args.json:
         _output_json({"words": words})

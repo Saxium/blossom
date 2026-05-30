@@ -89,4 +89,4 @@ def pylint(session: nox.Session) -> None:
 def mypy(session: nox.Session) -> None:
     """Run type checking with mypy."""
     session.install("mypy")
-    session.run("mypy", "blossom.py")
+    session.run("mypy", "--strict", "blossom.py")

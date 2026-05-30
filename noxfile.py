@@ -91,6 +91,12 @@ def pylint(session: nox.Session) -> None:
 
 
 @nox.session(python=PYTHON_VERSIONS)
+def pylance(session: nox.Session) -> None:
+    """Install the pylance package."""
+    session.install("pylance")
+
+
+@nox.session(python=PYTHON_VERSIONS)
 def mypy(session: nox.Session) -> None:
     """Run type checking with mypy."""
     session.install("mypy")

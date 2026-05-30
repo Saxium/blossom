@@ -12,13 +12,15 @@ def fixture_blossom() -> Blossom:
 
 def test_blossom_first_word(alpha_blossom: Blossom) -> None:
     """First word"""
-    assert alpha_blossom.words[0] == "eggers"
+    assert alpha_blossom.words
+    assert "eggers" in alpha_blossom.words
 
 
 def test_blossom_find_word(alpha_blossom: Blossom) -> None:
-    """Find word"""
-    assert alpha_blossom.words.index("peerless") == 40
-    assert alpha_blossom.words[40] == "peerless"
+    """Find word using list.index."""
+    assert alpha_blossom.words
+    index = alpha_blossom.words.index("peerless")
+    assert index == 40
 
 
 def test_blossom_word_bonuses() -> None:

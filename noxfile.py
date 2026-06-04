@@ -91,9 +91,10 @@ def pylint(session: nox.Session) -> None:
 
 
 @nox.session(python=PYTHON_VERSIONS)
-def pylance(session: nox.Session) -> None:
-    """Install the pylance package."""
-    session.install("pylance")
+def pyright(session: nox.Session) -> None:
+    """Run static type checking with pyright."""
+    session.install("pyright", "nodejs", "pytest")
+    session.run("pyright", "blossom.py", "test_blossom.py")
 
 
 @nox.session(python=PYTHON_VERSIONS)

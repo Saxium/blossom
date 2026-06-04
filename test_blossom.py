@@ -77,7 +77,17 @@ def test_top_score_and_simple_print(tmp_path) -> None:
     )
     blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
     result = blossom.top_score(min_score=0, print_output=False)
-    assert result["total"] >= 0
-    assert result["petals"]
-    assert len(result["rows"]) == 12
+
+    total = result["total"]
+    assert isinstance(total, int)
+    assert total >= 0
+
+    petals = result["petals"]
+    assert isinstance(petals, str)
+    assert petals
+
+    rows = result["rows"]
+    assert isinstance(rows, list)
+    assert len(rows) == 12
+
     assert blossom.simple_print() == list(blossom.words)

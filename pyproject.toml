@@ -38,7 +38,7 @@ test = [
     "mypy",
     "nox",
     "black",
-    "pylance",
+    "pyright",
 ]
 
 [tool.setuptools]

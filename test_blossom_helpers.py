@@ -22,11 +22,13 @@ def test_output_json_prints_valid_json(capsys) -> None:  # type: ignore[no-untyp
     assert parsed == payload
 
 
-def test_handle_bonus_with_json(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_handle_bonus_with_json(capsys) -> None:  # type: ignore[no-untyped-def]
     """_handle_bonus returns True and outputs JSON when requested."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd", "abcde"],
+        flower="abcdefg",
+        min_length=2,
+    )
     logger = logging.getLogger(__name__)
     args = Namespace(bonus="a", score=0, json=True)
     result = _handle_bonus(blossom, args, logger)
@@ -42,14 +44,26 @@ def test_handle_bonus_with_json(tmp_path, capsys) -> None:  # type: ignore[no-un
     }
 
 
-def test_handle_top_with_json(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_handle_top_with_json(capsys) -> None:  # type: ignore[no-untyped-def]
     """_handle_top returns True and outputs JSON when requested."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text(
-        "abcd\nabce\nabcf\nabcg\nabde\nabdf\nabdg\nabef\nabeg\nabfg\nacde\nacdf\n",
-        encoding="utf-8",
+    blossom = Blossom(
+        words_list=[
+            "abcd",
+            "abce",
+            "abcf",
+            "abcg",
+            "abde",
+            "abdf",
+            "abdg",
+            "abef",
+            "abeg",
+            "abfg",
+            "acde",
+            "acdf",
+        ],
+        flower="abcdefg",
+        min_length=2,
     )
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     args = Namespace(score=0, json=True)
     result = _handle_top(blossom, args)
     assert result is True
@@ -75,11 +89,13 @@ def test_handle_top_with_json(tmp_path, capsys) -> None:  # type: ignore[no-unty
     }
 
 
-def test_handle_print_with_json(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_handle_print_with_json(capsys) -> None:  # type: ignore[no-untyped-def]
     """_handle_print returns True and outputs JSON when requested."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd", "abcde"],
+        flower="abcdefg",
+        min_length=2,
+    )
     args = Namespace(json=True)
     result = _handle_print(blossom, args)
     assert result is True
@@ -89,11 +105,13 @@ def test_handle_print_with_json(tmp_path, capsys) -> None:  # type: ignore[no-un
     assert parsed["words"] == ["abcd", "abcde"]
 
 
-def test_handle_print_without_json(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+def test_handle_print_without_json(capsys) -> None:  # type: ignore[no-untyped-def]
     """_handle_print prints words when JSON not requested."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd", "abcde"],
+        flower="abcdefg",
+        min_length=2,
+    )
     args = Namespace(json=False)
     result = _handle_print(blossom, args)
     assert result is True
@@ -102,14 +120,26 @@ def test_handle_print_without_json(tmp_path, capsys) -> None:  # type: ignore[no
     assert "abcde" in captured.out
 
 
-def test_rank_variation_indirectly(tmp_path) -> None:
+def test_rank_variation_indirectly() -> None:
     """_rank_variation is tested indirectly through top_score."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text(
-        "abcd\nabce\nabcf\nabcg\nabde\nabdf\nabdg\nabef\nabeg\nabfg\nacde\nacdf\n",
-        encoding="utf-8",
+    blossom = Blossom(
+        words_list=[
+            "abcd",
+            "abce",
+            "abcf",
+            "abcg",
+            "abde",
+            "abdf",
+            "abdg",
+            "abef",
+            "abeg",
+            "abfg",
+            "acde",
+            "acdf",
+        ],
+        flower="abcdefg",
+        min_length=2,
     )
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     result = blossom.top_score(min_score=0, print_output=False)
     total = result["total"]
     rows = result["rows"]

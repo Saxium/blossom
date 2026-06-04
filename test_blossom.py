@@ -47,23 +47,27 @@ def test_load_words_missing_file_raises() -> None:
         Blossom(words_filename="missing.txt", flower="slurepg", min_length=6)
 
 
-def test_make_scores_and_show_scores(tmp_path) -> None:
+def test_make_scores_and_show_scores() -> None:
     """make_scores populates scores and show_scores returns ordered values."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabce\nabcf\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd", "abce", "abcf"],
+        flower="abcdefg",
+        min_length=2,
+    )
     assert blossom.make_scores("b", 0)
     scores = blossom.show_scores("b", print_output=False)
     assert scores[0][0] == "abcd"
     assert scores == sorted(scores, key=lambda item: item[1])
 
 
-def test_load_words_rejects_short_words(tmp_path) -> None:
+def test_load_words_rejects_short_words() -> None:
     """Blossom raises when a word shorter than MIN_WORD_LENGTH is present."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("ab\nabc\nabcd\nabcde\n", encoding="utf-8")
     with pytest.raises(BlossomException, match="Word shorter than minimum allowed length 4"):
-        Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+        Blossom(
+            words_list=["ab", "abc", "abcd", "abcde"],
+            flower="abcdefg",
+            min_length=2,
+        )
 
 
 def test_init_accepts_words_list() -> None:
@@ -76,13 +80,11 @@ def test_init_accepts_words_list() -> None:
     assert blossom.words == ["abcd", "abce", "abcf", "abcg"]
 
 
-def test_init_rejects_both_words_filename_and_words_list(tmp_path) -> None:
+def test_init_rejects_both_words_filename_and_words_list() -> None:
     """Blossom rejects when both filename and list are provided."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabce\n", encoding="utf-8")
     with pytest.raises(BlossomException, match="Only one of words_filename or words_list may be provided"):
         Blossom(
-            words_filename=str(words_file),
+            words_filename="words_alpha4.txt",
             words_list=["abcf", "abcg", "abcd"],
             flower="abcdefg",
             min_length=2,
@@ -100,14 +102,26 @@ def test_order_ranks_and_collect_bonus() -> None:
     assert blossom.collect_bonus(scores, "p") == {"apple": 10, "pear": 8}
 
 
-def test_top_score_and_simple_print(tmp_path) -> None:
+def test_top_score_and_simple_print() -> None:
     """top_score returns a structured result and simple_print returns words."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text(
-        "abcd\nabce\nabcf\nabcg\nabde\nabdf\nabdg\nabef\nabeg\nabfg\nacde\nacdf\n",
-        encoding="utf-8",
+    blossom = Blossom(
+        words_list=[
+            "abcd",
+            "abce",
+            "abcf",
+            "abcg",
+            "abde",
+            "abdf",
+            "abdg",
+            "abef",
+            "abeg",
+            "abfg",
+            "acde",
+            "acdf",
+        ],
+        flower="abcdefg",
+        min_length=2,
     )
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     result = blossom.top_score(min_score=0, print_output=False)
 
     total = result["total"]
@@ -137,12 +151,14 @@ def test_blossom_init_wrong_length() -> None:
         Blossom(words_filename="words_alpha4.txt", flower="abcdef", min_length=6)
 
 
-def test_load_words_no_matching_words(tmp_path) -> None:
+def test_load_words_no_matching_words() -> None:
     """load_words raises exception when no words match pistil."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("qrst\nuvwx\ncdef\n", encoding="utf-8")
     with pytest.raises(BlossomException, match="No words matching pistil"):
-        Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+        Blossom(
+            words_list=["qrst", "uvwx", "cdef"],
+            flower="abcdefg",
+            min_length=2,
+        )
 
 
 def test_make_scores_empty_words() -> None:
@@ -152,21 +168,25 @@ def test_make_scores_empty_words() -> None:
     assert result is False
 
 
-def test_show_scores_empty_scores(tmp_path) -> None:
+def test_show_scores_empty_scores() -> None:
     """show_scores returns empty list when no scores for bonus."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd"],
+        flower="abcdefg",
+        min_length=2,
+    )
     blossom.scores = {"abcd": {"x": 10}}
     scores = blossom.show_scores("z", print_output=False)
     assert scores == []
 
 
-def test_simple_print_returns_words(tmp_path) -> None:
+def test_simple_print_returns_words() -> None:
     """simple_print returns all words."""
-    words_file = tmp_path / "words.txt"
-    words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(
+        words_list=["abcd", "abcde"],
+        flower="abcdefg",
+        min_length=2,
+    )
     result = blossom.simple_print()
     assert result == ["abcd", "abcde"]
 

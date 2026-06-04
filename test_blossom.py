@@ -59,11 +59,11 @@ def test_make_scores_and_show_scores(tmp_path) -> None:
 
 
 def test_load_words_rejects_short_words(tmp_path) -> None:
-    """Blossom ignores words shorter than four letters."""
+    """Blossom raises when a word shorter than MIN_WORD_LENGTH is present."""
     words_file = tmp_path / "words.txt"
     words_file.write_text("ab\nabc\nabcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
-    assert blossom.words == ["abcd", "abcde"]
+    with pytest.raises(BlossomException, match="Word shorter than minimum allowed length 4"):
+        Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
 
 
 def test_order_ranks_and_collect_bonus() -> None:
@@ -117,7 +117,7 @@ def test_blossom_init_wrong_length() -> None:
 def test_load_words_no_matching_words(tmp_path) -> None:
     """load_words raises exception when no words match pistil."""
     words_file = tmp_path / "words.txt"
-    words_file.write_text("xyz\npqr\nstuvwx\n", encoding="utf-8")
+    words_file.write_text("qrst\nuvwx\ncdef\n", encoding="utf-8")
     with pytest.raises(BlossomException, match="No words matching pistil"):
         Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
 
@@ -142,10 +142,10 @@ def test_show_scores_empty_scores(tmp_path) -> None:
 def test_simple_print_returns_words(tmp_path) -> None:
     """simple_print returns all words."""
     words_file = tmp_path / "words.txt"
-    words_file.write_text("ab\nabc\nabcd\n", encoding="utf-8")
+    words_file.write_text("abcd\nabcde\n", encoding="utf-8")
     blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
     result = blossom.simple_print()
-    assert result == ["abcd"]
+    assert result == ["abcd", "abcde"]
 
 
 def test_blossom_parser_bonus() -> None:

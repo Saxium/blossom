@@ -56,6 +56,10 @@ class Blossom:
                 word = line.strip()
                 if not word.isalpha():
                     continue
+                if len(word) < self.MIN_WORD_LENGTH:
+                    raise BlossomException(
+                        f"Word shorter than minimum allowed length {self.MIN_WORD_LENGTH}: {word}"
+                    )
                 if len(word) < min_length:
                     continue
                 if self.pistil not in word:

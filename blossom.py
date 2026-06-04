@@ -23,10 +23,11 @@ class Blossom:
 
     def __init__(
         self,
-        words_source: str,
-        flower: str,
-        min_length: int,
-        logger: Optional[Logger] = None,
+        words_filename: Optional[str] = None,
+        words_list: Optional[list[str]] = None,
+        flower: str = "",
+        min_length: int = 6,
+        logger: Optional[Logger] = None
     ) -> None:
         """Initialise blossom."""
         self.flower: str = flower
@@ -37,21 +38,31 @@ class Blossom:
         if len(set(flower)) != 7:
             raise BlossomException("Seven unique chars required for flower")
 
+        if words_filename is None and words_list is None:
+            raise BlossomException("words_filename or words_list must be provided")
+
+        if words_filename is not None and words_list is not None:
+            raise BlossomException("Only one of words_filename or words_list may be provided")
+
         self.petals: list[str] = list(flower)
         self.pistil: str = self.petals.pop(0)
         self.petals_set: set[str] = set(self.petals)
 
-        self.words = self.load_words(words_source, min_length)
+        if words_list is not None:
+            self.words = self.load_words_from_list(words_list, min_length)
+        else:
+            assert words_filename is not None
+            self.words = self.load_words(words_filename, min_length)
 
-    def load_words(self, words_source: str, min_length: int) -> list[str]:
-        """Load words and filter pistil."""
+    def load_words(self, words_filename: str, min_length: int) -> list[str]:
+        """Load words from a file and filter pistil."""
         min_length = max(min_length, self.MIN_WORD_LENGTH)
         words: list[str] = []
-        if not os.path.exists(words_source):
-            raise BlossomException(f"No such file: {words_source}")
+        if not os.path.exists(words_filename):
+            raise BlossomException(f"No such file: {words_filename}")
 
         pistil_set: set[str] = {self.pistil}
-        with open(words_source, encoding="utf-8", newline="") as words_file:
+        with open(words_filename, encoding="utf-8", newline="") as words_file:
             for line in words_file:
                 word = line.strip()
                 if not word.isalpha():
@@ -66,6 +77,35 @@ class Blossom:
                     continue
                 if set(word) - self.petals_set == pistil_set:
                     words.append(word)
+
+        if not words:
+            raise BlossomException(f"No words matching pistil: {self.pistil}")
+
+        return words
+
+    def load_words_from_list(
+        self, words_list: list[str], min_length: int
+    ) -> list[str]:
+        """Load words from a list and filter pistil."""
+        min_length = max(min_length, self.MIN_WORD_LENGTH)
+        words: list[str] = []
+        pistil_set: set[str] = {self.pistil}
+        for word in words_list:
+            if not isinstance(word, str):
+                raise BlossomException("words_list must contain strings")
+            word = word.strip()
+            if not word.isalpha():
+                continue
+            if len(word) < self.MIN_WORD_LENGTH:
+                raise BlossomException(
+                    f"Word shorter than minimum allowed length {self.MIN_WORD_LENGTH}: {word}"
+                )
+            if len(word) < min_length:
+                continue
+            if self.pistil not in word:
+                continue
+            if set(word) - self.petals_set == pistil_set:
+                words.append(word)
 
         if not words:
             raise BlossomException(f"No words matching pistil: {self.pistil}")

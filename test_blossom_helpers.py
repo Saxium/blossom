@@ -26,7 +26,7 @@ def test_handle_bonus_with_json(tmp_path, capsys) -> None:  # type: ignore[no-un
     """_handle_bonus returns True and outputs JSON when requested."""
     words_file = tmp_path / "words.txt"
     words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     logger = logging.getLogger(__name__)
     args = Namespace(bonus="a", score=0, json=True)
     result = _handle_bonus(blossom, args, logger)
@@ -49,7 +49,7 @@ def test_handle_top_with_json(tmp_path, capsys) -> None:  # type: ignore[no-unty
         "abcd\nabce\nabcf\nabcg\nabde\nabdf\nabdg\nabef\nabeg\nabfg\nacde\nacdf\n",
         encoding="utf-8",
     )
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     args = Namespace(score=0, json=True)
     result = _handle_top(blossom, args)
     assert result is True
@@ -79,7 +79,7 @@ def test_handle_print_with_json(tmp_path, capsys) -> None:  # type: ignore[no-un
     """_handle_print returns True and outputs JSON when requested."""
     words_file = tmp_path / "words.txt"
     words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     args = Namespace(json=True)
     result = _handle_print(blossom, args)
     assert result is True
@@ -93,7 +93,7 @@ def test_handle_print_without_json(tmp_path, capsys) -> None:  # type: ignore[no
     """_handle_print prints words when JSON not requested."""
     words_file = tmp_path / "words.txt"
     words_file.write_text("abcd\nabcde\n", encoding="utf-8")
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     args = Namespace(json=False)
     result = _handle_print(blossom, args)
     assert result is True
@@ -109,7 +109,7 @@ def test_rank_variation_indirectly(tmp_path) -> None:
         "abcd\nabce\nabcf\nabcg\nabde\nabdf\nabdg\nabef\nabeg\nabfg\nacde\nacdf\n",
         encoding="utf-8",
     )
-    blossom = Blossom(words_source=str(words_file), flower="abcdefg", min_length=2)
+    blossom = Blossom(words_filename=str(words_file), flower="abcdefg", min_length=2)
     result = blossom.top_score(min_score=0, print_output=False)
     total = result["total"]
     rows = result["rows"]

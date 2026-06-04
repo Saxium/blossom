@@ -19,6 +19,8 @@ class BlossomException(Exception):
 class Blossom:
     """Blossom Online Word Game."""
 
+    MIN_WORD_LENGTH = 4
+
     def __init__(
         self,
         words_source: str,
@@ -43,6 +45,7 @@ class Blossom:
 
     def load_words(self, words_source: str, min_length: int) -> list[str]:
         """Load words and filter pistil."""
+        min_length = max(min_length, self.MIN_WORD_LENGTH)
         words: list[str] = []
         if not os.path.exists(words_source):
             raise BlossomException(f"No such file: {words_source}")
@@ -141,7 +144,8 @@ class Blossom:
                     f"No scores collected with min {min_score} bonus {bonus}"
                 )
 
-        variations = {"".join(p) for p in permutations(self.petals)}
+        # Use a sorted list to ensure deterministic iteration order
+        variations = sorted("".join(p) for p in permutations(self.petals))
         best: tuple[int, str, list[tuple[str, str, int]]] = (0, "", [])
         for petals in variations:
             total, data = self._rank_variation(petals)
@@ -186,10 +190,16 @@ class Blossom:
 def blossom_parser() -> ArgumentParser:
     """Blossom parser."""
     parser = ArgumentParser()
-    parser.add_argument("-w", "--words", default="words.txt", help="alpha words")
+    parser.add_argument("-w", "--words", default="words_alpha4.txt", help="alpha words")
     parser.add_argument("-l", "--log", help="logging output", action="store_true")
     parser.add_argument("-f", "--flower", required=True, help="petals (pistil first)")
-    parser.add_argument("-m", "--min", type=int, default=6, help="minium word length")
+    parser.add_argument(
+        "-m",
+        "--min",
+        type=int,
+        default=6,
+        help="minimum word length (at least 4)",
+    )
     parser.add_argument("-s", "--score", type=int, default=15, help="words above score")
     parser.add_argument("--json", action="store_true", help="json output")
 
